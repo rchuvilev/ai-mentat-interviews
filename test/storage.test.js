@@ -149,7 +149,12 @@ test('config survives a write/read round trip', () => {
 
 test('a corrupt limits file falls back to defaults instead of throwing', () => {
     // A damaged file must not stop the app starting.
-    fs.writeFileSync(path.join(tmpHome, '.config', 'cheating-daddy-config', 'limits.json'), '{ broken');
+    // The path comes from the module, not a literal: storage.js moved to the
+    // SDK data-dir contract (resolveDataDir) and this test still pointed at the
+    // abandoned .config/cheating-daddy-config/ location, so the write threw
+    // ENOENT before getLimits() was ever reached — the test failed without ever
+    // exercising what it names.
+    fs.writeFileSync(path.join(S.getConfigDir(), 'limits.json'), '{ broken');
     console.warn = () => {};
     const l = S.getLimits();
     console.warn = realWarn;
